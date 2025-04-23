@@ -66,7 +66,19 @@ WHERE x.recent_visit = 1;
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
 
-
+SELECT product_id, vendor_id, customer_id, COUNT(x.purchase_time) AS number_of_purchase_times
+FROM (
+	SELECT
+	product_id
+	, vendor_id
+	, market_date
+	, customer_id
+	,ROW_NUMBER() OVER(PARTITION BY customer_id, product_id ORDER BY market_date ASC) as purchase_time
+	
+	FROM customer_purchases
+) x
+GROUP BY product_id, customer_id
+;
 
 -- String manipulations
 /* 1. Some product names in the product table have descriptions like "Jar" or "Organic". 
