@@ -34,7 +34,7 @@ each new market date for each customer, or select only the unique market dates p
 (without purchase details) and number those visits. 
 HINT: One of these approaches uses ROW_NUMBER() and one uses DENSE_RANK(). */
 
-SELECT *
+SELECT DISTINCT*
 FROM (
 	SELECT 
 	customer_id
@@ -42,13 +42,26 @@ FROM (
 	,DENSE_RANK() OVER(PARTITION BY customer_id ORDER BY market_date) as customer_visit
 
 	FROM customer_purchases
-) x
+) x;
 
 /* 2. Reverse the numbering of the query from a part so each customer’s most recent visit is labeled 1, 
 then write another query that uses this one as a subquery (or temp table) and filters the results to 
 only the customer’s most recent visit. */
 
+DROP TABLE IF EXISTS temp.table1;
 
+CREATE TABLE temp.table1 AS
+
+SELECT DISTINCT customer_id, market_date AS latest_market_date_visit
+FROM (
+	SELECT
+	customer_id
+	, market_date
+	,DENSE_RANK() OVER(PARTITION BY customer_id ORDER BY market_date DESC) as recent_visit
+	
+	FROM customer_purchases
+) x
+WHERE x.recent_visit = 1;
 
 /* 3. Using a COUNT() window function, include a value along with each row of the 
 customer_purchases table that indicates how many different times that customer has purchased that product_id. */
