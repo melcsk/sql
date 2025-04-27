@@ -211,7 +211,8 @@ VALUES(24, 'Mini Apple Pie', '5"', 3, 'unit', CURRENT_TIMESTAMP);
 
 HINT: If you don't specify a WHERE clause, you are going to have a bad time.*/
 
-
+DELETE FROM product_units
+WHERE product_name = 'Mini Apple Pie';
 
 -- UPDATE
 /* 1.We want to add the current_quantity to the product_units table. 
