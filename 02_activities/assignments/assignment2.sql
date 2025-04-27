@@ -118,7 +118,34 @@ HINT: There are a possibly a few ways to do this query, but if you're struggling
 3) Query the second temp table twice, once for the best day, once for the worst day, 
 with a UNION binding them. */
 
+DROP TABLE IF EXISTS temp.total_sales_by_market_date;
+CREATE TABLE temp.total_sales_by_market_date AS
 
+SELECT market_date
+, total_sales
+, rn_max as [row_number]
+FROM
+(
+	SELECT market_date
+	, ROUND(SUM(quantity*cost_to_customer_per_qty), 2) AS total_sales
+	,RANK() OVER(ORDER BY SUM(quantity*cost_to_customer_per_qty)DESC) as rn_max
+	FROM customer_purchases
+	GROUP BY market_date
+)
+WHERE rn_max = 1
+
+UNION 
+
+SELECT *
+FROM 
+(
+	SELECT market_date
+	, ROUND(SUM(quantity*cost_to_customer_per_qty), 2) AS total_sales
+	,RANK() OVER(ORDER BY SUM(quantity*cost_to_customer_per_qty)ASC) as rn_min
+	FROM customer_purchases
+	GROUP BY market_date
+) 
+where rn_min = 1;
 
 
 /* SECTION 3 */
