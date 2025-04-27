@@ -161,7 +161,32 @@ Think a bit about the row counts: how many distinct vendors, product names are t
 How many customers are there (y). 
 Before your final group by you should have the product of those two queries (x*y).  */
 
+DROP TABLE IF EXISTS temp.vendor_sales_per_product_id;
+CREATE TABLE IF NOT EXISTS temp.vendor_sales_per_product_id AS
 
+SELECT DISTINCT vendor_name
+, product_name
+, ROUND(original_price*5, 2) AS sales_per_product_id
+FROM (
+	vendor_inventory vi
+	INNER JOIN vendor v
+	ON vi.vendor_id = v.vendor_id
+	INNER JOIN product p
+	ON vi.product_id = p.product_id
+)
+
+SELECT vendor_name
+, product_name
+, count(customer_id)*sales_per_product_id AS total_sales_per_product
+FROM (
+	SELECT vendor_name
+	, product_name
+	, sales_per_product_id
+	, customer_id
+	FROM customer
+	CROSS JOIN temp.vendor_sales_per_product_id
+)
+GROUP BY product_name;
 
 -- INSERT
 /*1.  Create a new table "product_units". 
