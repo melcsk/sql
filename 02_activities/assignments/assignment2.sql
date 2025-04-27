@@ -231,6 +231,25 @@ Finally, make sure you have a WHERE statement to update the right row,
 	you'll need to use product_units.product_id to refer to the correct row within the product_units table. 
 When you have all of these components, you can run the update statement. */
 
+ALTER TABLE product_units
+ADD current_quantity INT;
 
+SELECT * FROM product_units;
 
+DROP TABLE IF EXISTS temp.last_quantity_check;
 
+CREATE TEMP TABLE temp.last_quantity_check AS
+SELECT *
+FROM(
+	SELECT DISTINCT product_id
+	, quantity
+	, ROW_NUMBER() OVER(PARTITION BY product_id ORDER BY market_date DESC) as updated_quantity
+	, COALESCE(quantity, 0) AS quantity_zero
+	FROM vendor_inventory
+)	
+WHERE updated_quantity = 1;
+
+UPDATE product_units
+SET current_quantity = temp.last_quantity_check.quantity_zero
+FROM temp.last_quantity_check
+WHERE product_units.product_id = temp.last_quantity_check.product_id;
